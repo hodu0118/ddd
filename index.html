@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>호두 | 규칙 없는 무정부 서버</title>
+<meta name="description" content="호두는 초기화 없이 이어지는 한국 마인크래프트 무정부(Anarchy) 서버입니다. 야생 PvP, 규칙 없는 자유로운 플레이.">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base: #0c0a08;
+    --bg-panel: #17130f;
+    --bg-panel-2: #1e1712;
+    --line: #2c241c;
+    --amber: #c9863f;
+    --amber-soft: #e0aa6c;
+    --ember: #a6402f;
+    --text: #f2ebe0;
+    --text-dim: #a89c8c;
+    --text-faint: #6f6455;
+    --radius: 2px;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background: var(--bg-base);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+
+  h1, h2, h3, .display{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .mono{
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  a{ color: inherit; text-decoration: none; }
+  img{ max-width: 100%; display:block; }
+
+  ::selection{ background: var(--amber); color: #1a1208; }
+
+  :focus-visible{
+    outline: 2px solid var(--amber-soft);
+    outline-offset: 3px;
+  }
+
+  .wrap{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- Nav ---------- */
+  header.nav{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(12,10,8,0.85), rgba(12,10,8,0));
+    padding: 22px 0;
+    transition: background 0.3s ease, padding 0.3s ease;
+  }
+  header.nav.scrolled{
+    background: rgba(12,10,8,0.92);
+    backdrop-filter: blur(10px);
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+  }
+  .logo{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .logo .glyph{ color: var(--amber-soft); }
+  .nav-links{
+    display: flex;
+    gap: 36px;
+    font-size: 0.92rem;
+    color: var(--text-dim);
+  }
+  .nav-links a{ position: relative; padding: 4px 0; }
+  .nav-links a:hover{ color: var(--text); }
+  .nav-links a::after{
+    content:'';
+    position:absolute; left:0; right:0; bottom:-2px;
+    height:1px; background: var(--amber);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+  .nav-links a:hover::after{ transform: scaleX(1); }
+
+  @media (max-width: 640px){
+    .nav-links{ display:none; }
+  }
+  @media (max-width: 480px){
+    .eyebrow{ flex-wrap: wrap; row-gap: 8px; }
+    .dday-badge{ margin-left: 0; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-end;
+    background-image:
+      linear-gradient(to bottom, rgba(10,8,6,0.35) 0%, rgba(10,8,6,0.55) 45%, rgba(9,7,5,0.97) 96%),
+      url('assets/hero.jpg');
+    background-size: cover;
+    background-position: center 30%;
+  }
+  .hero-inner{
+    width: 100%;
+    padding-bottom: 96px;
+  }
+  .eyebrow{
+    display:flex; align-items:center; gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: var(--amber-soft);
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    opacity: 0;
+    animation: rise 0.8s ease 0.15s forwards;
+  }
+  .eyebrow::before{
+    content:'';
+    width: 22px; height: 1px;
+    background: var(--amber-soft);
+  }
+  .dday-badge{
+    display:inline-flex;
+    align-items:center;
+    gap: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: #1a1208;
+    background: var(--amber-soft);
+    padding: 5px 12px 5px 10px;
+    border-radius: 999px;
+    margin-left: 14px;
+    text-transform: none;
+  }
+  .dday-badge .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #1a1208;
+  }
+  .hero h1{
+    font-size: clamp(2.6rem, 6.6vw, 5.2rem);
+    line-height: 1.04;
+    color: var(--text);
+    opacity: 0;
+    animation: rise 0.9s ease 0.28s forwards;
+  }
+  .hero h1 .thin{
+    display:block;
+    font-weight: 500;
+    color: var(--text-dim);
+    font-size: 0.4em;
+    margin-top: 14px;
+    letter-spacing: 0.01em;
+  }
+  .hero p.lede{
+    max-width: 540px;
+    margin-top: 26px;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    opacity: 0;
+    animation: rise 0.9s ease 0.42s forwards;
+  }
+  .hero-cta{
+    display:flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 38px;
+    opacity: 0;
+    animation: rise 0.9s ease 0.56s forwards;
+  }
+
+  @keyframes rise{
+    from{ opacity: 0; transform: translateY(16px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 14px 26px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .btn:hover{ transform: translateY(-2px); }
+  .btn-primary{
+    background: var(--amber);
+    color: #1a1208;
+  }
+  .btn-primary:hover{ background: var(--amber-soft); }
+  .btn-ghost{
+    border-color: var(--line);
+    color: var(--text);
+    background: rgba(255,255,255,0.02);
+  }
+  .btn-ghost:hover{ border-color: var(--amber); }
+
+  .hero-meta{
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 28px;
+    max-width: 640px;
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+    opacity: 0;
+    animation: rise 0.9s ease 0.7s forwards;
+  }
+  .hero-meta .item .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .hero-meta .item .value{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem;
+    color: var(--amber-soft);
+  }
+
+  /* ---------- Arch divider (echoes the gate photo) ---------- */
+  .arch-divider{
+    position: relative;
+    height: 90px;
+    display:flex;
+    justify-content:center;
+    background: var(--bg-base);
+  }
+  .arch-divider svg{
+    height: 100%;
+  }
+
+  /* ---------- Sections ---------- */
+  section.panel{
+    padding: 120px 0;
+    border-top: 1px solid var(--line);
+  }
+  .section-head{
+    display:flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 56px;
+  }
+  .section-num{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--amber);
+    padding-top: 6px;
+    white-space: nowrap;
+  }
+  .section-head h2{
+    font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+    color: var(--text);
+  }
+  .section-tag{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display:block;
+    margin-bottom: 10px;
+  }
+
+  .grid-2{
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 64px;
+    align-items: start;
+  }
+  @media (max-width: 860px){
+    .grid-2{ grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  .prose p{
+    color: var(--text-dim);
+    font-size: 1.02rem;
+    margin-bottom: 18px;
+    max-width: 54ch;
+  }
+  .prose strong{
+    color: var(--amber-soft);
+    font-weight: 600;
+  }
+
+  .stat-list{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+  .stat-list .row{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .stat-list .row .k{
+    color: var(--text-faint);
+    font-size: 0.9rem;
+  }
+  .stat-list .row .v{
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text);
+    font-size: 0.98rem;
+  }
+
+  /* rules list */
+  .rule-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  @media (max-width: 640px){
+    .rule-grid{ grid-template-columns: 1fr; }
+  }
+  .rule-card{
+    background: var(--bg-panel);
+    padding: 32px;
+  }
+  .rule-card .mark{
+    display:inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .mark.allow{ background: rgba(201,134,63,0.15); color: var(--amber-soft); border: 1px solid rgba(201,134,63,0.35); }
+  .mark.deny{ background: rgba(166,64,47,0.15); color: #d98276; border: 1px solid rgba(166,64,47,0.35); }
+  .rule-card h3{
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .rule-card p{
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+
+  /* gallery / showcase */
+  .showcase{
+    position: relative;
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .showcase img{
+    width: 100%;
+    height: auto;
+    display:block;
+    filter: saturate(0.95);
+  }
+  .showcase-caption{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-faint);
+  }
+
+  /* ---------- Live status ---------- */
+  .status-box{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--line);
+    background: var(--bg-panel-2);
+  }
+  @media (max-width: 760px){
+    .status-box{ grid-template-columns: repeat(2, 1fr); }
+  }
+  .status-cell{
+    padding: 28px 26px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .status-cell:nth-child(4n){ border-right: none; }
+  @media (max-width: 760px){
+    .status-cell:nth-child(2n){ border-right: none; }
+    .status-cell:nth-child(4n){ border-right: 1px solid var(--line); }
+  }
+  .status-cell .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .status-cell .value{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.4rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .status-dot{
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    flex-shrink: 0;
+  }
+  .status-dot.online{ background: #6fbf73; box-shadow: 0 0 8px rgba(111,191,115,0.6); }
+  .status-dot.offline{ background: var(--ember); }
+  .status-note{
+    margin-top: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
+    color: var(--text-faint);
+  }
+  .status-note.error{ color: #d98276; }
+  .refresh-btn{
+    background: none;
+    border: none;
+    color: var(--amber-soft);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-left: 10px;
+  }
+
+  /* ---------- Connect ---------- */
+  .connect{
+    background: var(--bg-panel);
+  }
+  .connect-box{
+    border: 1px solid var(--line);
+    background: var(--bg-panel-2);
+    padding: 40px;
+  }
+  .connect-row{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .connect-row:last-child{ border-bottom: none; }
+  .connect-row .edition{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    display:block;
+  }
+  .connect-row .addr{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.35rem;
+    color: var(--amber-soft);
+    word-break: break-all;
+  }
+  .copy-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 11px 20px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+  .copy-btn:hover{ border-color: var(--amber); color: var(--amber-soft); }
+  .copy-btn.copied{ border-color: var(--amber); color: var(--amber-soft); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    padding: 56px 0 40px;
+    border-top: 1px solid var(--line);
+  }
+  .footer-inner{
+    display:flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  footer .logo{ font-size: 1.1rem; margin-bottom: 10px; }
+  footer .fnote{
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    max-width: 420px;
+    line-height: 1.7;
+  }
+  footer .flinks{
+    display:flex; gap: 24px;
+    font-size: 0.86rem;
+    color: var(--text-dim);
+  }
+  .copyright{
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--text-faint);
+    font-size: 0.78rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <div class="logo"><span class="glyph">⌂</span>호두</div>
+    <nav class="nav-links">
+      <a href="#story">서버 소개</a>
+      <a href="#status">현황</a>
+      <a href="#rules">규칙</a>
+      <a href="#gallery">풍경</a>
+      <a href="#connect">접속하기</a>
+    </nav>
+    <a href="#connect" class="btn btn-ghost" style="padding:9px 18px; font-size:0.85rem;">접속 주소</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">대한민국 마인크래프트 무정부 서버 <span class="dday-badge" id="ddayBadge"><span class="dot"></span><span id="ddayText">D-Day 계산 중</span></span></div>
+    <h1>
+      문을 넘으면
+      <span class="thin">규칙은 없다</span>
+    </h1>
+    <p class="lede">
+      호두는 초기화 없이 이어지는 야생 PvP 무정부 서버입니다.
+      무엇을 할지는 정해져 있지 않습니다 — 짓든, 부수든, 훔치든, 전부 당신의 선택입니다.
+    </p>
+    <div class="hero-cta">
+      <a href="#connect" class="btn btn-primary">접속 방법 보기</a>
+      <a href="#story" class="btn btn-ghost">서버 소개</a>
+    </div>
+    <div class="hero-meta">
+      <div class="item">
+        <div class="label">서버 주소</div>
+        <div class="value">hoduplay.mcv.kr</div>
+      </div>
+      <div class="item">
+        <div class="label">버전</div>
+        <div class="value">1.20 ~ 26.1.2</div>
+      </div>
+      <div class="item">
+        <div class="label">장르</div>
+        <div class="value">야생 · PVP · 무정부</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="arch-divider">
+  <svg width="140" height="90" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 90V46C20 21.7 39.7 2 64 2H76C100.3 2 120 21.7 120 46V90"
+          stroke="#c9863f" stroke-width="1.4" opacity="0.55"/>
+  </svg>
+</div>
+
+<section class="panel" id="status">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">00</span>
+      <div>
+        <span class="section-tag">실시간 현황</span>
+        <h2>지금 서버는</h2>
+      </div>
+    </div>
+    <div class="status-box">
+      <div class="status-cell">
+        <div class="label">서버 상태</div>
+        <div class="value"><span class="status-dot" id="statusDot"></span><span id="statusText">확인 중</span></div>
+      </div>
+      <div class="status-cell">
+        <div class="label">접속 인원</div>
+        <div class="value" id="statusPlayers">—</div>
+      </div>
+      <div class="status-cell">
+        <div class="label">버전</div>
+        <div class="value" id="statusVersion" style="font-size:1rem;">—</div>
+      </div>
+      <div class="status-cell">
+        <div class="label">코어</div>
+        <div class="value" id="statusSoftware" style="font-size:1rem;">—</div>
+      </div>
+    </div>
+    <div class="status-note" id="statusNote">불러오는 중...<button class="refresh-btn" id="statusRefresh">새로고침</button></div>
+  </div>
+</section>
+
+<section class="panel" id="story">
+  <div class="wrap">
+    <div class="grid-2">
+      <div>
+        <span class="section-tag">01 — 서버 소개</span>
+        <h2 style="margin-bottom:28px;">간섭받지 않는 세계</h2>
+        <div class="prose">
+          <p>
+            호두는 <strong>초기화 없이</strong> 계속 이어지는 하나의 월드를 기반으로 운영됩니다.
+            누군가 지은 건물, 파헤쳐진 지형, 버려진 자원까지 — 플레이어가 남긴 흔적이 그대로 쌓여갑니다.
+          </p>
+          <p>
+            정해진 퀘스트나 목표는 없습니다. 무엇을 할지, 누구와 함께할지, 어떻게 살아남을지는
+            전부 <strong>당신의 몫</strong>입니다. 그게 무정부 서버의 방식입니다.
+          </p>
+        </div>
+      </div>
+      <div class="stat-list">
+        <div class="row"><span class="k">서버 코어</span><span class="v">Paper</span></div>
+        <div class="row"><span class="k">플레이 방식</span><span class="v">야생 / PvP</span></div>
+        <div class="row"><span class="k">월드 초기화</span><span class="v">없음</span></div>
+        <div class="row"><span class="k">플랫폼</span><span class="v">Java Edition</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="rules">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <div>
+        <span class="section-tag">규칙</span>
+        <h2>허용되는 것, 허용되지 않는 것</h2>
+      </div>
+    </div>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <span class="mark allow">허용</span>
+        <h3>PvP · 약탈 · 파괴</h3>
+        <p>다른 플레이어를 공격하거나, 건물을 부수거나, 자원을 빼앗는 행위는 서버의 기본 규칙입니다. 스스로를 지키는 것도 당신의 몫입니다.</p>
+      </div>
+      <div class="rule-card">
+        <span class="mark deny">금지</span>
+        <h3>핵 · 매크로 · 취약점 악용</h3>
+        <p>클라이언트 조작, 오토클리커, 서버 취약점을 이용한 비정상적인 플레이는 금지되며 적발 시 제재됩니다.</p>
+      </div>
+      <div class="rule-card">
+        <span class="mark allow">허용</span>
+        <h3>연합 · 배신 · 함정</h3>
+        <p>동맹을 맺든 깨든 자유입니다. 신뢰는 서버가 보장해주지 않습니다.</p>
+      </div>
+      <div class="rule-card">
+        <span class="mark deny">금지</span>
+        <h3>DDoS · 실생활 위협</h3>
+        <p>게임 밖에서의 공격이나 위협 행위는 무정부의 영역이 아닙니다. 예외 없이 조치됩니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="gallery">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <div>
+        <span class="section-tag">월드 풍경</span>
+        <h2>문 앞에서</h2>
+      </div>
+    </div>
+    <div class="showcase">
+      <img src="assets/hero.jpg" alt="호두 서버 스폰 게이트">
+      <div class="showcase-caption">
+        <span>SPAWN GATE</span>
+        <span>HODU WORLD</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="panel connect" id="connect">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <div>
+        <span class="section-tag">접속하기</span>
+        <h2>지금 바로 들어올 수 있습니다</h2>
+      </div>
+    </div>
+    <div class="connect-box">
+      <div class="connect-row">
+        <div>
+          <span class="edition">Java Edition</span>
+          <div class="addr">hoduplay.mcv.kr</div>
+        </div>
+        <button class="copy-btn" data-copy="hoduplay.mcv.kr">주소 복사</button>
+      </div>
+      <div class="connect-row">
+        <div>
+          <span class="edition">지원 버전</span>
+          <div class="addr" style="font-size:1.05rem; color:var(--text-dim);">1.20 ~ 26.1.2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div>
+        <div class="logo"><span class="glyph">⌂</span>호두</div>
+        <p class="fnote">
+          초기화 없이 이어지는 무정부 서버, 호두.<br>
+          무엇을 할지는 당신이 정합니다.
+        </p>
+      </div>
+      <div class="flinks">
+        <a href="#story">서버 소개</a>
+        <a href="#rules">규칙</a>
+        <a href="#connect">접속하기</a>
+      </div>
+    </div>
+    <div class="copyright">
+      © 2026 HODU. 본 서버는 공식 마인크래프트 서비스가 아니며 Mojang 또는 Microsoft의 승인·제휴를 받지 않았습니다.
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ---- D-Day countdown (오픈일: 2026-08-20) ----
+  (function(){
+    const OPEN_DATE = new Date('2026-08-20T00:00:00+09:00');
+    const ddayText = document.getElementById('ddayText');
+
+    function updateDday(){
+      const now = new Date();
+      const nowKST = new Date(now.getTime() + (9 * 60 - now.getTimezoneOffset()) * 60000);
+      const startOfToday = new Date(nowKST.getFullYear(), nowKST.getMonth(), nowKST.getDate());
+      const startOfOpen = new Date(OPEN_DATE.getFullYear(), OPEN_DATE.getMonth(), OPEN_DATE.getDate());
+      const diffDays = Math.round((startOfOpen - startOfToday) / 86400000);
+
+      if(diffDays > 0){
+        ddayText.textContent = `오픈까지 D-${diffDays}`;
+      } else if(diffDays === 0){
+        ddayText.textContent = '오늘 오픈!';
+      } else {
+        ddayText.textContent = `오픈 D+${Math.abs(diffDays)}`;
+      }
+    }
+
+    updateDday();
+    setInterval(updateDday, 60 * 60 * 1000);
+  })();
+
+  // ---- live server status (hoduplay.mcv.kr) via mcsrvstat.us ----
+  const SERVER_ADDR = 'hoduplay.mcv.kr';
+  const STATUS_API = `https://api.mcsrvstat.us/3/${SERVER_ADDR}`;
+
+  const dotEl = document.getElementById('statusDot');
+  const textEl = document.getElementById('statusText');
+  const playersEl = document.getElementById('statusPlayers');
+  const versionEl = document.getElementById('statusVersion');
+  const softwareEl = document.getElementById('statusSoftware');
+  const noteEl = document.getElementById('statusNote');
+  const refreshBtn = document.getElementById('statusRefresh');
+
+  function setNote(msg, isError){
+    noteEl.textContent = msg + ' ';
+    noteEl.classList.toggle('error', !!isError);
+    noteEl.appendChild(refreshBtn);
+  }
+
+  async function loadServerStatus(){
+    dotEl.className = 'status-dot';
+    textEl.textContent = '확인 중';
+    setNote('불러오는 중...', false);
+
+    try{
+      const res = await fetch(STATUS_API, { headers: { 'Accept': 'application/json' } });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      if(data.online){
+        dotEl.classList.add('online');
+        textEl.textContent = '온라인';
+        playersEl.textContent = `${data.players?.online ?? 0} / ${data.players?.max ?? '?'}`;
+        versionEl.textContent = data.version || '알 수 없음';
+        softwareEl.textContent = data.software || 'Paper';
+        const now = new Date().toLocaleTimeString('ko-KR');
+        setNote(`마지막 확인: ${now}`, false);
+      } else {
+        dotEl.classList.add('offline');
+        textEl.textContent = '오프라인';
+        playersEl.textContent = '0 / —';
+        versionEl.textContent = '—';
+        softwareEl.textContent = '—';
+        const now = new Date().toLocaleTimeString('ko-KR');
+        setNote(`마지막 확인: ${now}`, false);
+      }
+    } catch(err){
+      dotEl.classList.add('offline');
+      textEl.textContent = '확인 불가';
+      playersEl.textContent = '—';
+      versionEl.textContent = '—';
+      softwareEl.textContent = '—';
+      setNote('상태 정보를 불러오지 못했습니다.', true);
+    }
+  }
+
+  refreshBtn.addEventListener('click', loadServerStatus);
+  loadServerStatus();
+  // 60초마다 자동 새로고침 (API는 5분 캐시)
+  setInterval(loadServerStatus, 60000);
+
+  // nav background on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // copy to clipboard
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const text = btn.getAttribute('data-copy');
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      const original = btn.textContent;
+      btn.textContent = '복사됨 ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  });
+</script>
+
+</body>
+</html>

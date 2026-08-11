@@ -466,6 +466,86 @@
     margin-left: 10px;
   }
 
+  /* ---------- Minecraft multiplayer-list style card ---------- */
+  .mc-card{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #313131;
+    border: 2px solid #000;
+    padding: 10px 14px;
+    margin-top: 22px;
+    image-rendering: pixelated;
+  }
+  .mc-card .mc-icon{
+    width: 58px;
+    height: 58px;
+    image-rendering: pixelated;
+    background: #8b8b8b;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+  .mc-card .mc-info{
+    flex: 1;
+    min-width: 0;
+    font-family: 'IBM Plex Mono', 'Noto Sans KR', monospace;
+  }
+  .mc-card .mc-name{
+    color: #fff;
+    font-size: 1.02rem;
+    font-weight: 700;
+    text-shadow: 1.5px 1.5px 0 #000;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mc-card .mc-motd{
+    color: #aaaaaa;
+    font-size: 0.86rem;
+    text-shadow: 1.5px 1.5px 0 #000;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mc-card .mc-motd .amp{ color: #55ffff; }
+  .mc-card .mc-motd .b{ color: #ffaa00; font-weight: 700; }
+  .mc-card .mc-right{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .mc-card .mc-players{
+    color: #aaaaaa;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.92rem;
+    text-shadow: 1.5px 1.5px 0 #000;
+  }
+  .mc-card .mc-players.on{ color: #ffffff; }
+  .mc-card .mc-bars{
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+  }
+  .mc-card .mc-bars i{
+    display:block;
+    width: 3px;
+    background: #3f3f3f;
+  }
+  .mc-card .mc-bars i:nth-child(1){ height: 4px; }
+  .mc-card .mc-bars i:nth-child(2){ height: 7px; }
+  .mc-card .mc-bars i:nth-child(3){ height: 10px; }
+  .mc-card .mc-bars i:nth-child(4){ height: 14px; }
+  .mc-card .mc-bars.good i{ background: #4fe34f; }
+  .mc-card .mc-bars.off i{ background: #6b6b6b; }
+  @media (max-width: 480px){
+    .mc-card{ flex-wrap: wrap; }
+    .mc-card .mc-icon{ width: 44px; height: 44px; }
+  }
+
   /* ---------- Connect ---------- */
   .connect{
     background: var(--bg-panel);
@@ -615,6 +695,17 @@
         <h2>지금 서버는</h2>
       </div>
     </div>
+    <div class="mc-card">
+      <img class="mc-icon" id="mcIcon" src="assets/favicon.png" alt="서버 아이콘">
+      <div class="mc-info">
+        <div class="mc-name">Minecraft 서버</div>
+        <div class="mc-motd" id="mcMotd"><span class="b">HO</span><span class="amp">DU ANARCHY SERVER</span></div>
+      </div>
+      <div class="mc-right">
+        <div class="mc-players" id="mcPlayers">—/—</div>
+        <div class="mc-bars off" id="mcBars"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
     <div class="status-box">
       <div class="status-cell">
         <div class="label">서버 상태</div>
@@ -623,6 +714,10 @@
       <div class="status-cell">
         <div class="label">접속 인원</div>
         <div class="value" id="statusPlayers">—</div>
+      </div>
+      <div class="status-cell">
+        <div class="label">맵 크기</div>
+        <div class="value" style="font-size:1rem;">50,000,000 x 50,000,000</div>
       </div>
       <div class="status-cell">
         <div class="label">버전</div>
@@ -803,6 +898,10 @@
   const softwareEl = document.getElementById('statusSoftware');
   const noteEl = document.getElementById('statusNote');
   const refreshBtn = document.getElementById('statusRefresh');
+  const mcIconEl = document.getElementById('mcIcon');
+  const mcMotdEl = document.getElementById('mcMotd');
+  const mcPlayersEl = document.getElementById('mcPlayers');
+  const mcBarsEl = document.getElementById('mcBars');
 
   function setNote(msg, isError){
     noteEl.textContent = msg + ' ';
@@ -823,11 +922,21 @@
       if(data.online){
         dotEl.classList.add('online');
         textEl.textContent = '온라인';
-        playersEl.textContent = `${data.players?.online ?? 0} / ${data.players?.max ?? '?'}`;
+        const onlineCount = data.players?.online ?? 0;
+        const maxCount = data.players?.max ?? '?';
+        playersEl.textContent = `${onlineCount} / ${maxCount}`;
         versionEl.textContent = data.version || '알 수 없음';
         softwareEl.textContent = data.software || 'Paper';
         const now = new Date().toLocaleTimeString('ko-KR');
         setNote(`마지막 확인: ${now}`, false);
+
+        // Minecraft 멀티플레이 목록 스타일 카드 갱신
+        if(data.icon) mcIconEl.src = data.icon;
+        const motdLine = (data.motd?.clean && data.motd.clean[0]) ? data.motd.clean.join(' ') : 'HODU ANARCHY SERVER';
+        mcMotdEl.textContent = motdLine;
+        mcPlayersEl.textContent = `${onlineCount}/${maxCount}`;
+        mcPlayersEl.classList.add('on');
+        mcBarsEl.className = 'mc-bars good';
       } else {
         dotEl.classList.add('offline');
         textEl.textContent = '오프라인';
@@ -836,6 +945,10 @@
         softwareEl.textContent = '—';
         const now = new Date().toLocaleTimeString('ko-KR');
         setNote(`마지막 확인: ${now}`, false);
+
+        mcPlayersEl.textContent = '—/—';
+        mcPlayersEl.classList.remove('on');
+        mcBarsEl.className = 'mc-bars off';
       }
     } catch(err){
       dotEl.classList.add('offline');
@@ -844,6 +957,10 @@
       versionEl.textContent = '—';
       softwareEl.textContent = '—';
       setNote('상태 정보를 불러오지 못했습니다.', true);
+
+      mcPlayersEl.textContent = '—/—';
+      mcPlayersEl.classList.remove('on');
+      mcBarsEl.className = 'mc-bars off';
     }
   }
 
